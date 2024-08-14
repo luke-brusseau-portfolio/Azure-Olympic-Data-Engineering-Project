@@ -1,0 +1,47 @@
+-- Top 5 Countries based on gold medals
+SELECT TOP 5 TeamCountry,
+SUM(Gold) Total_gold,
+SUM(Silver) Total_silver,
+SUM(Bronze) Total_bronze
+FROM medals
+GROUP BY TeamCountry
+ORDER BY Total_Gold DESC;
+
+
+-- Top 5 Sports with the biggest difference between number of male and female athletes
+SELECT TOP 5 Discipline, SUM(Female) AS Female_Participants, SUM(Male) AS Male_Participants,
+(SUM(Male) * 100.0 / SUM(Female)) AS Male_to_Female_Percentage
+FROM gender
+GROUP BY Discipline
+HAVING SUM(Female) > 0
+ORDER BY Male_to_Female_Percentage DESC;
+
+
+-- Number of Athletes VS Number of medals won (20 or above athletes)
+WITH MedalCount AS (
+    SELECT 
+        TeamCountry,
+        SUM(Gold) AS Total_Gold,
+        SUM(Silver) AS Total_Silver,
+        SUM(Bronze) AS Total_Bronze,
+        SUM(Gold + Silver + Bronze) AS Total_Medals
+    FROM medals
+    GROUP BY TeamCountry
+)
+SELECT 
+    athletes.Country,
+    COUNT(DISTINCT athletes.PersonName) AS Number_of_Athletes,
+    COALESCE(medalcount.Total_Medals, 0) AS Total_Medals
+FROM athletes
+LEFT JOIN 
+    MedalCount medalcount ON athletes.Country = medalcount.TeamCountry
+GROUP BY athletes.Country, medalcount.Total_Medals
+HAVING COUNT(DISTINCT athletes.PersonName) > 20
+ORDER BY Number_of_Athletes ASC; 
+
+
+-- Pie chart of total medals by country
+SELECT TeamCountry, SUM(Gold + Silver + Bronze) AS Total_Medals
+FROM Medals
+GROUP BY TeamCountry
+ORDER BY Total_Medals DESC;
